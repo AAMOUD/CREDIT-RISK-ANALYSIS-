@@ -690,18 +690,18 @@ print(data.head())
     
     Encoded DataFrame with Label Encoding:
        Age  Sex  Job  Housing  Saving accounts  Checking account  Credit amount  \
-    0   67  NaN    2      NaN              NaN               NaN           1169   
-    1   22  NaN    2      NaN              NaN               NaN           5951   
-    2   49  NaN    1      NaN              NaN               NaN           2096   
-    3   45  NaN    2      NaN              NaN               NaN           7882   
-    4   53  NaN    2      NaN              NaN               NaN           4870   
+    0   67    0    2        2                0                 0           1169   
+    1   22    1    2        2                0                 1           5951   
+    2   49    0    1        2                0                 1           2096   
+    3   45    0    2        1                0                 0           7882   
+    4   53    0    2        1                0                 0           4870   
     
-       Duration  Purpose  Risk  
-    0         6      NaN   NaN  
-    1        48      NaN   NaN  
-    2        12      NaN   NaN  
-    3        42      NaN   NaN  
-    4        24      NaN   NaN  
+       Duration  Purpose  Risk Age_group  
+    0         6        0     1     61-70  
+    1        48        0     0     18-30  
+    2        12        5     1     41-50  
+    3        42        1     1     41-50  
+    4        24        6     0     51-60  
     
 
 Explanation of Encoding
@@ -719,3 +719,203 @@ Purpose: Assigned values are based on the order of expense (from least to most e
 radio/TV: 0 , furniture/equipment: 1 , domestic appliances: 2 , repairs: 3 , vacation/others: 4 , education: 5 , car: 6 , business: 7
      
 Risk: good = 1 , bad = 0
+
+
+```python
+data.head()
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Age</th>
+      <th>Sex</th>
+      <th>Job</th>
+      <th>Housing</th>
+      <th>Saving accounts</th>
+      <th>Checking account</th>
+      <th>Credit amount</th>
+      <th>Duration</th>
+      <th>Purpose</th>
+      <th>Risk</th>
+      <th>Age_group</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>67</td>
+      <td>0</td>
+      <td>2</td>
+      <td>2</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1169</td>
+      <td>6</td>
+      <td>0</td>
+      <td>1</td>
+      <td>61-70</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>22</td>
+      <td>1</td>
+      <td>2</td>
+      <td>2</td>
+      <td>0</td>
+      <td>1</td>
+      <td>5951</td>
+      <td>48</td>
+      <td>0</td>
+      <td>0</td>
+      <td>18-30</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>49</td>
+      <td>0</td>
+      <td>1</td>
+      <td>2</td>
+      <td>0</td>
+      <td>1</td>
+      <td>2096</td>
+      <td>12</td>
+      <td>5</td>
+      <td>1</td>
+      <td>41-50</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>45</td>
+      <td>0</td>
+      <td>2</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>7882</td>
+      <td>42</td>
+      <td>1</td>
+      <td>1</td>
+      <td>41-50</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>53</td>
+      <td>0</td>
+      <td>2</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>4870</td>
+      <td>24</td>
+      <td>6</td>
+      <td>0</td>
+      <td>51-60</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, confusion_matrix
+
+data = data.drop('Age_group', axis=1)
+
+# 1. Data Preparation
+X = data.drop('Risk', axis=1)  # All columns except 'Risk'
+y = data['Risk']  # Target variable
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 2. Feature Scaling
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# 3. Model Training
+model = LogisticRegression()  
+model.fit(X_train, y_train)
+
+# 4. Prediction
+y_pred = model.predict(X_test)
+
+# 5. Evaluation
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+# 6. Visualization
+plt.figure(figsize=(12, 6))
+
+predictions_df = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred})
+
+actual_counts = predictions_df['Actual'].value_counts().sort_index()
+predicted_counts = predictions_df['Predicted'].value_counts().sort_index()
+
+bar_width = 0.35
+x = np.arange(len(actual_counts))
+
+plt.bar(x - bar_width/2, actual_counts, width=bar_width, label='Actual', color='blue', alpha=0.7)
+plt.bar(x + bar_width/2, predicted_counts, width=bar_width, label='Predicted', color='orange', alpha=0.7)
+
+plt.title('Actual vs Predicted Risk')
+plt.ylabel('Count')
+plt.xlabel('Risk')
+plt.xticks(x, ['Bad (0)', 'Good (1)'])
+plt.legend()
+plt.grid(axis='y')
+
+plt.show()
+```
+
+    Confusion Matrix:
+    [[ 14  45]
+     [ 14 127]]
+    
+    Classification Report:
+                  precision    recall  f1-score   support
+    
+               0       0.50      0.24      0.32        59
+               1       0.74      0.90      0.81       141
+    
+        accuracy                           0.70       200
+       macro avg       0.62      0.57      0.57       200
+    weighted avg       0.67      0.70      0.67       200
+    
+    
+
+
+    
+![png](CRA_files/CRA_27_1.png)
+    
+
